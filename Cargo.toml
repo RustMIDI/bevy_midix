@@ -1,6 +1,48 @@
 [package]
 name = "bevy_midix"
-version = "0.1.0"
+version = "4.0.0-alpha"
+authors = ["dsgallups <dsgallups@protonmail.com>"]
 edition = "2024"
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/dsgallups/midix"
+documentation = "https://docs.rs/bevy_midix"
+description = "The MIDI plugin for humans. Out-of-the-box soundfont synthesizer, commands, and input!"
+keywords = ["gamedev", "bevy", "midi", "encoding", "control"]
+categories = ["game-development", "game-engines", "encoding"]
+exclude = ["assets/*"]
+
+[features]
+web = []
 
 [dependencies]
+# midir = "0.10"
+# crossbeam-channel = "0.5.15"
+# midix = { version = "4.0.0-alpha", features = [
+#     "bevy",
+#     "std",
+# ], path = "../midix" }
+# midix_synth = { version = "0.1.0-alpha", path = "../midix_synth" }
+# thiserror = "2.0"
+# tinyaudio = "1.1.0"
+# itertools = "0.14.0"
+# fnv = "1.0.7"
+
+[dependencies.bevy]
+# version = "0.16.0-rc.5"
+# default-features = false
+# features = [
+#     "multi_threaded",
+#     "bevy_asset",
+#     "async_executor",
+#     "bevy_log",
+#     "bevy_state",
+#     "std",
+# ]
+
+[dev-dependencies]
+pretty_assertions = "1.4.1"
+
+[dev-dependencies.bevy]
+# version = "0.16.0-rc.5"
+# default-features = true
