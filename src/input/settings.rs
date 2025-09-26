@@ -2,15 +2,15 @@ use bevy::prelude::*;
 pub use midir::Ignore;
 
 /// Settings for [`MidiInputPlugin`](crate::prelude::MidiInputPlugin) and [`MidiOutputPlugin`](crate::prelude::MidiOutputPlugin).
-#[derive(Resource, Clone, Copy, Debug)]
-pub struct MidiSettings {
+#[derive(Resource, Clone, Debug)]
+pub struct MidiInputSettings {
     /// The name of the listening client
-    pub client_name: &'static str,
+    pub client_name: String,
 
     /// The port name of the listening client.
     ///
     /// This is appended to the port name of a connection essentially.
-    pub port_name: &'static str,
+    pub port_name: String,
 
     /// Describe what events you want to ignore.
     ///
@@ -20,14 +20,14 @@ pub struct MidiSettings {
     pub ignore: Ignore,
 }
 
-impl Default for MidiSettings {
+impl Default for MidiInputSettings {
     /// Assigns client name and port name to `bevy_midix`
     ///
     /// ignore is set to [`Ignore::None`]
     fn default() -> Self {
         Self {
-            client_name: "bevy_midix",
-            port_name: "bevy_midix",
+            client_name: "bevy_midix".to_string(),
+            port_name: "bevy_midix".to_string(),
             ignore: Ignore::None,
         }
     }

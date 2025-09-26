@@ -9,11 +9,14 @@ pub use settings::*;
 mod error;
 pub use error::*;
 
-pub struct MidiIoPlugin;
+#[derive(Default)]
+pub struct MidiIoPlugin {
+    pub input_setings: MidiInputSettings,
+}
 
 impl Plugin for MidiIoPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(MidiInput::new(MidiSettings::default()));
+        app.insert_resource(MidiInput::new(self.input_setings.clone()));
     }
 }
 
@@ -47,7 +50,7 @@ unsafe impl Send for MidiInputState {}
 #[derive(Resource)]
 pub struct MidiInput {
     channel: Channel<MidiData>,
-    settings: MidiSettings,
+    settings: MidiInputSettings,
     state: Option<MidiInputState>,
     ports: Vec<MidiInputPort>,
 }
@@ -55,7 +58,7 @@ impl Default for MidiInput {
     fn default() -> Self {
         Self {
             channel: Channel::new(60),
-            settings: MidiSettings::default(),
+            settings: MidiInputSettings::default(),
             state: None,
             ports: Vec::new(),
         }
@@ -65,8 +68,8 @@ impl Default for MidiInput {
 impl MidiInput {
     /// Creates a new midi input with the provided settings. This is done automatically
     /// by [`MidiInputPlugin`].
-    pub fn new(settings: MidiSettings) -> Self {
-        let listener = match midir::MidiInput::new(settings.client_name) {
+    pub fn new(settings: MidiInputSettings) -> Self {
+        let listener = match midir::MidiInput::new(&settings.client_name) {
             Ok(input) => input,
             Err(e) => {
                 panic!("Error initializing midi input! {e:?}");
@@ -117,7 +120,7 @@ impl MidiInput {
         let handler = MidiInputConnectionHandler::new(
             listener,
             port,
-            self.settings.port_name,
+            &self.settings.port_name,
             self.channel.clone(),
         )
         .unwrap();
@@ -128,7 +131,7 @@ impl MidiInput {
 
     /// A method you should call if [`MidiInput::is_listening`] and [`MidiInput::is_active`] are both false.
     pub fn reset(&mut self) {
-        let listener = match midir::MidiInput::new(self.settings.client_name) {
+        let listener = match midir::MidiInput::new(&self.settings.client_name) {
             Ok(input) => input,
             Err(e) => {
                 error!("Failed to reset listening state! {e:?}");
@@ -231,26 +234,4 @@ impl MidiInput {
         let listener = conn.close();
         self.state = Some(MidiInputState::Listening(listener));
     }
-
-    // pub fn take_channel(&mut self) -> Option<Receiver<MidiData>> {
-    //     let Some(MidiInputState::Active(conn)) = &mut self.state else {
-    //         return None;
-    //     };
-    //     conn.take_channel()
-    // }
-    // pub fn release_channel(&mut self) {
-    //     if let Some(MidiInputState::Active(conn)) = &mut self.state {
-    //         conn.release_channel();
-    //     }
-    // }
-
-    // /// will return data if connected. Note, this CONSUMES the event.
-    // ///
-    // /// You will need to propagate this data out to other systems if need be.
-    // pub fn read(&self) -> Result<MidiData, TryRecvError> {
-    //     let Some(MidiInputState::Active(conn)) = &self.state else {
-    //         return Err(TryRecvError::Disconnected);
-    //     };
-    //     conn.read()
-    // }
 }
