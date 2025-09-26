@@ -35,4 +35,6 @@ pub mod prelude {
     pub use crate::synth::*;
 
     pub use crate::MidiPlugin;
+
+    pub use midix::prelude::*;
 }
