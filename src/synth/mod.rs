@@ -6,7 +6,7 @@ mod player_and_commands;
 pub use player_and_commands::*;
 
 use bevy::prelude::*;
-use bevy_seedling::prelude::*;
+use bevy_seedling::{prelude::*, time::TimePlugin};
 use trotcast::Channel;
 
 use crate::{input::MidiData, synth::node::MidiSynthNode};
@@ -18,6 +18,9 @@ pub struct ProcessSynthCommands;
 
 impl Plugin for SynthPlugin {
     fn build(&self, app: &mut App) {
+        app.add_plugins(TimePlugin);
+    }
+    fn finish(&self, app: &mut App) {
         // Register our custom node type with bevy_seedling
         // Since MidiSynthNode doesn't implement Diff/Patch, we use register_simple_node.
         //

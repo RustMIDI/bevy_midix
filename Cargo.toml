@@ -38,3 +38,6 @@ features = ["bevy_log"]
 
 [dev-dependencies]
 pretty_assertions = "1.4.1"
+
+[patch.crates-io]
+bevy_seedling = { git = "https://github.com/dsgallups/bevy_seedling.git", branch = "dsgallups/public-time"}
