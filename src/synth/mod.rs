@@ -18,7 +18,9 @@ pub struct ProcessSynthCommands;
 
 impl Plugin for SynthPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(TimePlugin);
+        if !app.is_plugin_added::<TimePlugin>() {
+            app.add_plugins(TimePlugin);
+        }
     }
     fn finish(&self, app: &mut App) {
         // Register our custom node type with bevy_seedling
