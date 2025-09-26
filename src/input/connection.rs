@@ -9,7 +9,7 @@ use super::MidiInputError;
 /// An [`Event`] for incoming midi data.
 #[derive(Event, Debug, Clone)]
 pub struct MidiData {
-    /// Returns the timestamp of the data    /// Something happened when refreshing the port statuses
+    /// Returns the timestamp of the data
     pub stamp: UMicros,
 
     /// The underlying message of the event
