@@ -33,4 +33,6 @@ pub mod prelude {
 
     #[cfg(feature = "synth")]
     pub use crate::synth::*;
+
+    pub use crate::MidiPlugin;
 }
