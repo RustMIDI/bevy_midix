@@ -5,7 +5,7 @@ use firewheel::{diff::EventQueue, event::NodeEventType};
 mod player_and_commands;
 pub use player_and_commands::*;
 
-use bevy::prelude::*;
+use bevy::{app::PluginGroupBuilder, prelude::*};
 use bevy_seedling::{prelude::*, time::TimePlugin};
 use trotcast::Channel;
 
@@ -16,26 +16,24 @@ pub struct SynthPlugin;
 #[derive(SystemSet, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct ProcessSynthCommands;
 
-impl Plugin for SynthPlugin {
-    fn build(&self, app: &mut App) {
-        if !app.is_plugin_added::<TimePlugin>() {
-            app.add_plugins(TimePlugin);
-        }
+impl PluginGroup for SynthPlugin {
+    fn build(self) -> PluginGroupBuilder {
+        PluginGroupBuilder::start::<Self>().add_after::<TimePlugin>(plugin_inner)
     }
-    fn finish(&self, app: &mut App) {
-        // Register our custom node type with bevy_seedling
-        // Since MidiSynthNode doesn't implement Diff/Patch, we use register_simple_node.
-        //
-        // This is mainly because we need more from rustysynth than is available.
-        app.register_simple_node::<MidiSynthNode>()
-            .register_simple_node::<MidiSynthNode<Channel<MidiData>>>();
+}
+fn plugin_inner(app: &mut App) {
+    // Register our custom node type with bevy_seedling
+    // Since MidiSynthNode doesn't implement Diff/Patch, we use register_simple_node.
+    //
+    // This is mainly because we need more from rustysynth than is available.
+    app.register_simple_node::<MidiSynthNode>()
+        .register_simple_node::<MidiSynthNode<Channel<MidiData>>>();
 
-        app.configure_sets(Update, ProcessSynthCommands);
+    app.configure_sets(Update, ProcessSynthCommands);
 
-        app.add_plugins(node::plugin);
+    app.add_plugins(node::plugin);
 
-        app.add_systems(Update, process_midi_commands.in_set(ProcessSynthCommands));
-    }
+    app.add_systems(Update, process_midi_commands.in_set(ProcessSynthCommands));
 }
 
 /// System that processes MIDI commands and sends them to the audio nodes
