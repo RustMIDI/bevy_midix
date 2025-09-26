@@ -29,7 +29,17 @@ impl Plugin for SynthPlugin {
 
         app.add_plugins(node::plugin);
 
-        app.add_systems(Update, process_midi_commands.in_set(ProcessSynthCommands));
+        app.add_systems(Startup, check_for_seedling)
+            .add_systems(Update, process_midi_commands.in_set(ProcessSynthCommands));
+    }
+}
+fn check_for_seedling(time: Option<Res<Time<Audio>>>) {
+    if time.is_none() {
+        panic!(
+            "Failed to build `SynthPlugin` in `bevy_midix`:\
+            `bevy_seedling`'s TimePlugin was not found. Make sure to add `TimePlugin` *before* `SynthPlugin` or `MidiPlugin.\
+            This is usually done by adding `SeedlingPlugin` to your `App`."
+        );
     }
 }
 

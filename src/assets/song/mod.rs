@@ -6,7 +6,6 @@ use bevy::{asset::uuid::Uuid, prelude::*};
 use midix::prelude::*;
 
 pub mod simple;
-use serde::{Deserialize, Serialize};
 pub use simple::*;
 
 mod song_writer;
@@ -16,7 +15,8 @@ mod builder;
 pub use builder::*;
 
 /// The identifier of a certain midi song
-#[derive(Clone, Copy, Hash, Eq, PartialEq, Debug, Reflect, Serialize, Deserialize)]
+#[derive(Clone, Copy, Hash, Eq, PartialEq, Debug, Reflect)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SongId(Uuid);
 
 impl Default for SongId {
