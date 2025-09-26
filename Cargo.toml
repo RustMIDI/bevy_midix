@@ -1,6 +1,6 @@
 [package]
 name = "bevy_midix"
-version = "4.0.0-alpha.2"
+version = "4.0.0-alpha.3"
 authors = ["dsgallups <dsgallups@protonmail.com>"]
 edition = "2024"
 license = "MIT OR Apache-2.0"
@@ -26,7 +26,9 @@ midix_synth = { version = "0.1.0-alpha.0", optional = true }
 thiserror = {version = "2.0", default-features = false }
 trotcast = "0.3.0"
 serde = { version = "1.0", features = ["derive"], optional = true }
-bevy_seedling = { git = "https://github.com/dsgallups/bevy_seedling.git", branch = "dsgallups/public-time", features = [ "mp3"], optional = true}
+bevy_seedling = { version = "0.6.0-rc", features = [
+    "mp3",
+], optional = true }
 firewheel = { version = "0.8.0-rc", optional = true }
 
 [dependencies.bevy]
