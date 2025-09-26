@@ -18,7 +18,9 @@ pub struct ProcessSynthCommands;
 
 impl PluginGroup for SynthPlugin {
     fn build(self) -> PluginGroupBuilder {
-        PluginGroupBuilder::start::<Self>().add_after::<TimePlugin>(plugin_inner)
+        PluginGroupBuilder::start::<Self>()
+            .add(TimePlugin)
+            .add_after::<TimePlugin>(plugin_inner)
     }
 }
 fn plugin_inner(app: &mut App) {
