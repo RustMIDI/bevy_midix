@@ -6,7 +6,7 @@ mod player_and_commands;
 pub use player_and_commands::*;
 
 use bevy::prelude::*;
-use bevy_seedling::{prelude::*, time::TimePlugin};
+use bevy_seedling::prelude::*;
 use trotcast::Channel;
 
 use crate::{input::MidiData, synth::node::MidiSynthNode};
@@ -18,13 +18,6 @@ pub struct ProcessSynthCommands;
 
 impl Plugin for SynthPlugin {
     fn build(&self, app: &mut App) {
-        if !app.is_plugin_added::<TimePlugin>() {
-            panic!(
-                "Failed to build `SynthPlugin` in `bevy_midix`:\
-                `bevy_seedling`'s TimePlugin was not found. Make sure to add `TimePlugin` *before* `SynthPlugin` or `MidiPlugin.\
-                This is usually done by adding `SeedlingPlugin` to your `App`."
-            );
-        }
         // Register our custom node type with bevy_seedling
         // Since MidiSynthNode doesn't implement Diff/Patch, we use register_simple_node.
         //
@@ -36,7 +29,17 @@ impl Plugin for SynthPlugin {
 
         app.add_plugins(node::plugin);
 
-        app.add_systems(Update, process_midi_commands.in_set(ProcessSynthCommands));
+        app.add_systems(Startup, check_for_seedling)
+            .add_systems(Update, process_midi_commands.in_set(ProcessSynthCommands));
+    }
+}
+fn check_for_seedling(time: Option<Res<Time<Audio>>>) {
+    if time.is_none() {
+        panic!(
+            "Failed to build `SynthPlugin` in `bevy_midix`:\
+            `bevy_seedling`'s TimePlugin was not found. Make sure to add `TimePlugin` *before* `SynthPlugin` or `MidiPlugin.\
+            This is usually done by adding `SeedlingPlugin` to your `App`."
+        );
     }
 }
 
