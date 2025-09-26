@@ -1,7 +1,9 @@
 use bevy::prelude::*;
 use midir::MidiInputPort;
-use midix::events::{FromLiveEventBytes, LiveEvent};
-use proj3_core::UMicros;
+use midix::{
+    UMicros,
+    events::{FromLiveEventBytes, LiveEvent},
+};
 use trotcast::Channel;
 
 use super::MidiInputError;
