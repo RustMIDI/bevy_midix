@@ -1,6 +1,40 @@
 [package]
 name = "bevy_midix"
-version = "0.1.0"
+version = "4.0.0-alpha.0"
+authors = ["dsgallups <dsgallups@protonmail.com>"]
 edition = "2024"
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/dsgallups/midix"
+documentation = "https://docs.rs/bevy_midix"
+description = "The MIDI plugin for humans. Out-of-the-box soundfont synthesizer, commands, and input!"
+keywords = ["gamedev", "bevy", "midi", "encoding", "control"]
+categories = ["game-development", "game-engines", "encoding"]
+exclude = ["assets/*"]
+
+[features]
+serde = ["dep:serde", "midix/serde"]
+std = ["thiserror/std"]
+assets = ["midix/bevy_asset"]
+synth = ["midix_synth", "dep:bevy_seedling", "dep:firewheel", "assets"]
+web = []
 
 [dependencies]
+midir = "0.10"
+midix = { version = "4.0.0-alpha.1", features = ["bevy"] }
+midix_synth = { version = "0.1.0-alpha.0", optional = true }
+thiserror = {version = "2.0", default-features = false }
+trotcast = "0.3.0"
+serde = { version = "1.0", features = ["derive"], optional = true }
+bevy_seedling = { version = "0.6.0-rc", features = [
+    "mp3",
+], optional = true }
+firewheel = { version = "0.8.0-rc", optional = true }
+
+[dependencies.bevy]
+version = "0.17.0-rc"
+default-features = false
+features = ["bevy_log"]
+
+[dev-dependencies]
+pretty_assertions = "1.4.1"
