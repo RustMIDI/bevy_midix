@@ -13,11 +13,11 @@ categories = ["game-development", "game-engines", "encoding"]
 exclude = ["assets/*"]
 
 [features]
+default = ["std", "synth", "assets"]
 serde = ["dep:serde", "midix/serde"]
 std = ["thiserror/std"]
 assets = ["midix/bevy_asset"]
 synth = ["midix_synth", "dep:bevy_seedling", "dep:firewheel", "assets"]
-web = []
 
 [dependencies]
 midir = "0.10"
