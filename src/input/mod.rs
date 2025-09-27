@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 mod settings;
+use midix::{UMicros, events::LiveEvent};
 pub use settings::*;
 
 mod error;
@@ -19,6 +20,12 @@ use trotcast::prelude::*;
 
 use crate::input::state::{MidiInputConnectionHandler, MidiInputState};
 
+pub trait FromMidiInputData: Send + Sync + Clone + 'static {
+    fn from_midi_data(timestamp: UMicros, event: LiveEvent<'static>) -> Self
+    where
+        Self: Sized;
+}
+
 /// The central resource for interacting with midi inputs
 ///
 /// `MidiInput` does many things:
@@ -26,8 +33,8 @@ use crate::input::state::{MidiInputConnectionHandler, MidiInputState};
 /// - Allows one to connect to a particular midi device and read output
 /// - Close that connection and search for other devices
 #[derive(Resource)]
-pub struct MidiInput {
-    channel: Channel<MidiData>,
+pub struct MidiInput<D: FromMidiInputData = MidiData> {
+    channel: Channel<D>,
     settings: MidiInputSettings,
     state: Option<MidiInputState>,
     ports: Vec<MidiInputPort>,
@@ -43,7 +50,7 @@ impl Default for MidiInput {
     }
 }
 
-impl MidiInput {
+impl<D: FromMidiInputData> MidiInput<D> {
     /// Creates a new midi input with the provided settings. This is done automatically
     /// by [`MidiInputPlugin`].
     pub fn new(settings: MidiInputSettings) -> Self {
@@ -63,7 +70,7 @@ impl MidiInput {
     }
 
     /// The channel use to send and receive midi data
-    pub fn channel(&self) -> &Channel<MidiData> {
+    pub fn channel(&self) -> &Channel<D> {
         &self.channel
     }
 

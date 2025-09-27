@@ -1,10 +1,23 @@
+use std::marker::PhantomData;
+
 use bevy::prelude::*;
 
-use crate::input::{MidiData, MidiInput, MidiInputSettings};
+use crate::input::{FromMidiInputData, MidiData, MidiInput, MidiInputSettings};
 
-pub struct MidiIoPlugin {
+pub struct MidiIoPlugin<D: FromMidiInputData = MidiData> {
     pub input_setings: MidiInputSettings,
     pub add_channel_event: bool,
+    pub(crate) _p: PhantomData<D>,
+}
+
+impl<D: FromMidiInputData> MidiIoPlugin<D> {
+    pub fn new(input_setings: MidiInputSettings, add_channel_event: bool) -> Self {
+        Self {
+            input_setings,
+            add_channel_event,
+            _p: PhantomData,
+        }
+    }
 }
 
 #[allow(clippy::derivable_impls)]
@@ -13,13 +26,14 @@ impl Default for MidiIoPlugin {
         Self {
             input_setings: Default::default(),
             add_channel_event: false,
+            _p: PhantomData,
         }
     }
 }
 
-impl Plugin for MidiIoPlugin {
+impl<D: FromMidiInputData> Plugin for MidiIoPlugin<D> {
     fn build(&self, app: &mut App) {
-        app.insert_resource(MidiInput::new(self.input_setings.clone()));
+        app.insert_resource(MidiInput::<D>::new(self.input_setings.clone()));
         if self.add_channel_event {
             app.add_message::<MidiData>();
             app.add_systems(Startup, create_recv_channel)

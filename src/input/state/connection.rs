@@ -6,18 +6,18 @@ use midix::{
 };
 use trotcast::Channel;
 
-use crate::input::{MidiData, MidiInputError};
+use crate::input::{FromMidiInputData, MidiInputError};
 
 pub(crate) struct MidiInputConnectionHandler {
     conn: midir::MidiInputConnection<()>,
 }
 
 impl MidiInputConnectionHandler {
-    pub fn new(
+    pub fn new<D: FromMidiInputData>(
         midir_input: midir::MidiInput,
         port: &MidiInputPort,
         port_name: &str,
-        sender: Channel<MidiData>,
+        sender: Channel<D>,
     ) -> Result<Self, MidiInputError> {
         let conn = midir_input.connect(
             port,
@@ -27,11 +27,9 @@ impl MidiInputConnectionHandler {
                     let Ok(message) = LiveEvent::from_bytes(data) else {
                         return;
                     };
-                    if let Err(e) = sender.send(MidiData {
-                        stamp: UMicros::new(timestamp),
-                        message,
-                    }) {
-                        warn!("Error sending metadata! {e:?}");
+                    if let Err(e) = sender.send(D::from_midi_data(UMicros::new(timestamp), message))
+                    {
+                        warn!("Error sending MIDI data! {e:?}");
                     }
                 }
             },
