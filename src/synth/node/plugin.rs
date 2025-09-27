@@ -5,26 +5,26 @@ use bevy_seedling::{prelude::AudioEvents, time::Audio};
 
 use crate::{
     assets::SoundFontAsset,
-    input::MidiInput,
+    input::{FromMidiInputData, MidiInput},
     synth::{SynthPlayer, node::MidiSynthNode},
 };
 
 #[derive(Component)]
 struct NodeSpawned;
 
-pub fn plugin(app: &mut App) {
-    app.add_systems(Update, spawn_midi_nodes);
+pub fn plugin<D: FromMidiInputData>(app: &mut App) {
+    app.add_systems(Update, spawn_midi_nodes::<D>);
 }
 
 /// System that spawns MIDI synthesizer nodes for entities with soundfonts
 ///
 /// once the soundfont has loaded.
-fn spawn_midi_nodes(
+fn spawn_midi_nodes<D: FromMidiInputData>(
     mut commands: Commands,
     soundfont_assets: Res<Assets<SoundFontAsset>>,
     query: Query<(Entity, &SynthPlayer), Without<NodeSpawned>>,
     time: Res<Time<Audio>>,
-    midi_io: Res<MidiInput>,
+    midi_io: Res<MidiInput<D>>,
 ) {
     for (entity, synth_player) in &query {
         // Check if soundfont is loaded

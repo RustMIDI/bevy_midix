@@ -18,6 +18,8 @@ pub struct MidiInputSettings {
     /// (manufacturer specific messages to their proprietary devices),
     /// set this value to [`Ignore::Sysex`].
     pub ignore: Ignore,
+
+    pub channel_size: usize,
 }
 
 impl Default for MidiInputSettings {
@@ -29,6 +31,7 @@ impl Default for MidiInputSettings {
             client_name: "bevy_midix".to_string(),
             port_name: "bevy_midix".to_string(),
             ignore: Ignore::None,
+            channel_size: 60,
         }
     }
 }
