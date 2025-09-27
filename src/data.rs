@@ -86,6 +86,7 @@ pub struct MidiDataInstant {
     /// The underlying message of the event
     pub message: LiveEvent<'static>,
 
+    /// The instant this message was constructed.
     pub instant: Instant,
 }
 impl FromMidiInputData for MidiDataInstant {
