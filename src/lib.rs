@@ -14,8 +14,8 @@ pub mod assets;
 pub mod synth;
 
 pub struct MidiPlugin<D: FromMidiInputData = MidiData> {
-    input_settings: MidiInputSettings,
-    data_settings: D::Settings,
+    pub input_settings: MidiInputSettings,
+    pub data_settings: D::Settings,
 }
 impl Default for MidiPlugin {
     fn default() -> Self {
