@@ -1,45 +1,37 @@
 use bevy::prelude::*;
 
-mod connection;
-pub use connection::*;
-
 mod settings;
+use midix::{UMicros, events::LiveEvent};
 pub use settings::*;
 
 mod error;
 pub use error::*;
 
-#[derive(Default)]
-pub struct MidiIoPlugin {
-    pub input_setings: MidiInputSettings,
-}
+mod state;
 
-impl Plugin for MidiIoPlugin {
-    fn build(&self, app: &mut App) {
-        app.insert_resource(MidiInput::new(self.input_setings.clone()));
-    }
-}
+mod data;
+pub use data::*;
+
+mod plugin;
+pub use plugin::*;
 
 use midir::MidiInputPort;
 use trotcast::prelude::*;
 
-// you can't actually have multiple MidiInputs on one device, it's really strange.
-enum MidiInputState {
-    Listening(midir::MidiInput),
-    Active(MidiInputConnectionHandler),
+use crate::input::state::{MidiInputConnectionHandler, MidiInputState};
+
+pub trait FromMidiInputData: Send + Sync + Clone + 'static {
+    type Settings: Send + Sync;
+
+    fn from_midi_data(timestamp: UMicros, event: LiveEvent<'static>) -> Self;
+
+    /// You can use this to configure stuff for your type in bevy,
+    ///
+    /// but you don't necessarily need to do this. It's useful for
+    /// the default [`MidiData`] message as it derives event.
+    #[allow(unused_variables)]
+    fn configure_plugin(settings: &Self::Settings, app: &mut App) {}
 }
-/// SAFETY: This applies to linux alsa.
-///
-/// There is only one instance of MidiInput at any time using this crate.
-///
-/// However, this may not satisfy the requirements for safety. If another instance of
-/// MidiInput exists in the external program, then UB is possible.
-///
-/// Therefore, the assumption is, that when using this crate, that the user
-/// will NOT instantiate another [`midir::MidiInput`] at any point while
-/// [`MidiInput`] has been inserted as a resource
-unsafe impl Sync for MidiInputState {}
-unsafe impl Send for MidiInputState {}
 
 /// The central resource for interacting with midi inputs
 ///
@@ -48,8 +40,8 @@ unsafe impl Send for MidiInputState {}
 /// - Allows one to connect to a particular midi device and read output
 /// - Close that connection and search for other devices
 #[derive(Resource)]
-pub struct MidiInput {
-    channel: Channel<MidiData>,
+pub struct MidiInput<D: FromMidiInputData = MidiData> {
+    channel: Channel<D>,
     settings: MidiInputSettings,
     state: Option<MidiInputState>,
     ports: Vec<MidiInputPort>,
@@ -65,7 +57,7 @@ impl Default for MidiInput {
     }
 }
 
-impl MidiInput {
+impl<D: FromMidiInputData> MidiInput<D> {
     /// Creates a new midi input with the provided settings. This is done automatically
     /// by [`MidiInputPlugin`].
     pub fn new(settings: MidiInputSettings) -> Self {
@@ -83,7 +75,9 @@ impl MidiInput {
             ports,
         }
     }
-    pub fn channel(&self) -> &Channel<MidiData> {
+
+    /// The channel use to send and receive midi data
+    pub fn channel(&self) -> &Channel<D> {
         &self.channel
     }
 
@@ -140,59 +134,73 @@ impl MidiInput {
         };
         self.state = Some(MidiInputState::Listening(listener));
     }
-    // /// Attempts to connects to the passed port
-    // ///
-    // /// # Errors
-    // /// - If already connected to a device
-    // /// - An input connection cannot be established
-    // pub fn connect_to_port(&mut self, port: &MidiInputPort) -> Result<(), MidiInputError> {
-    //     if self
-    //         .state
-    //         .as_ref()
-    //         .is_none_or(|s| matches!(s, MidiInputState::Active(_)))
-    //     {
-    //         return Err(MidiInputError::invalid(
-    //             "Cannot connect: not currently active!",
-    //         ));
-    //     }
-    //     let MidiInputState::Listening(listener) = self.state.take().unwrap() else {
-    //         unreachable!()
-    //     };
+    /// Attempts to connects to the passed port
+    ///
+    /// # Errors
+    /// - If already connected to a device
+    /// - An input connection cannot be established
+    pub fn connect_to_port(&mut self, port: &MidiInputPort) -> Result<(), MidiInputError> {
+        if self
+            .state
+            .as_ref()
+            .is_none_or(|s| matches!(s, MidiInputState::Active(_)))
+        {
+            return Err(MidiInputError::invalid(
+                "Cannot connect: not currently active!",
+            ));
+        }
+        let MidiInputState::Listening(listener) = self.state.take().unwrap() else {
+            unreachable!()
+        };
 
-    //     self.state = Some(MidiInputState::Active(
-    //         MidiInputConnectionHandler::new(listener, port, self.settings.port_name).unwrap(),
-    //     ));
-    //     Ok(())
-    // }
-    // /// Attempts to connects to the passed port
-    // ///
-    // /// # Errors
-    // /// - If already connected to a device
-    // /// - If the port ID cannot be currently found
-    // ///   - Note that this case can occur if you have not refreshed ports
-    // ///     and the device is no longer available.
-    // /// - An input connection cannot be established
-    // pub fn connect_to_id(&mut self, id: String) -> Result<(), MidiInputError> {
-    //     if self
-    //         .state
-    //         .as_ref()
-    //         .is_none_or(|s| matches!(s, MidiInputState::Active(_)))
-    //     {
-    //         return Err(MidiInputError::invalid(
-    //             "Cannot connect: not currently active!",
-    //         ));
-    //     }
-    //     let MidiInputState::Listening(listener) = self.state.take().unwrap() else {
-    //         unreachable!()
-    //     };
-    //     let Some(port) = listener.find_port_by_id(id.clone()) else {
-    //         return Err(MidiInputError::port_not_found(id));
-    //     };
-    //     self.state = Some(MidiInputState::Active(
-    //         MidiInputConnectionHandler::new(listener, &port, self.settings.port_name).unwrap(),
-    //     ));
-    //     Ok(())
-    // }
+        self.state = Some(MidiInputState::Active(
+            MidiInputConnectionHandler::new(
+                listener,
+                port,
+                &self.settings.port_name,
+                self.channel.clone(),
+            )
+            .unwrap(),
+        ));
+        Ok(())
+    }
+
+    /// Attempts to connects to the passed port
+    ///
+    /// # Errors
+    /// - If already connected to a device
+    /// - If the port ID cannot be currently found
+    ///   - Note that this case can occur if you have not refreshed ports
+    ///     and the device is no longer available.
+    /// - An input connection cannot be established
+    pub fn connect_to_id(&mut self, id: String) -> Result<(), MidiInputError> {
+        if self
+            .state
+            .as_ref()
+            .is_none_or(|s| matches!(s, MidiInputState::Active(_)))
+        {
+            return Err(MidiInputError::invalid(
+                "Cannot connect: not currently active!",
+            ));
+        }
+        let MidiInputState::Listening(listener) = self.state.take().unwrap() else {
+            unreachable!()
+        };
+        let Some(port) = listener.find_port_by_id(id.clone()) else {
+            return Err(MidiInputError::port_not_found(id));
+        };
+        self.state = Some(MidiInputState::Active(
+            MidiInputConnectionHandler::new(
+                listener,
+                &port,
+                &self.settings.port_name,
+                self.channel.clone(),
+            )
+            .unwrap(),
+        ));
+        Ok(())
+    }
+
     /// True if a device is currently connected
     pub fn is_active(&self) -> bool {
         self.state
