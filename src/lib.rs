@@ -1,5 +1,3 @@
-use std::marker::PhantomData;
-
 use bevy::app::Plugin;
 
 use crate::input::{FromMidiInputData, MidiData, MidiIoPlugin};
@@ -14,15 +12,14 @@ pub mod synth;
 #[derive(Default)]
 pub struct MidiPlugin<D: FromMidiInputData = MidiData> {
     input_settings: crate::input::MidiInputSettings,
-    add_channel_event: bool,
-    _p: PhantomData<D>,
+    data_settings: D::Settings,
 }
 
 impl<D: FromMidiInputData> Plugin for MidiPlugin<D> {
     fn build(&self, app: &mut bevy::app::App) {
         app.add_plugins(MidiIoPlugin::<D>::new(
             self.input_settings.clone(),
-            self.add_channel_event,
+            self.data_settings.clone(),
         ));
         #[cfg(feature = "assets")]
         app.add_plugins(crate::assets::MidiAssetsPlugin);

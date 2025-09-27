@@ -21,9 +21,18 @@ use trotcast::prelude::*;
 use crate::input::state::{MidiInputConnectionHandler, MidiInputState};
 
 pub trait FromMidiInputData: Send + Sync + Clone + 'static {
+    type Settings: Send + Sync + Clone;
+
     fn from_midi_data(timestamp: UMicros, event: LiveEvent<'static>) -> Self
     where
         Self: Sized;
+
+    /// You can use this to configure stuff for your type in bevy,
+    ///
+    /// but you don't necessarily need to do this. It's useful for
+    /// the default [`MidiData`] message as it derives event.
+    #[allow(unused_variables)]
+    fn configure_plugin(settings: Self::Settings, app: &mut App) {}
 }
 
 /// The central resource for interacting with midi inputs
