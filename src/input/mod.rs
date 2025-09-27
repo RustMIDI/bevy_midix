@@ -9,8 +9,7 @@ pub use error::*;
 
 mod state;
 
-mod data;
-pub use data::*;
+pub mod data;
 
 mod plugin;
 pub use plugin::*;
@@ -18,7 +17,10 @@ pub use plugin::*;
 use midir::MidiInputPort;
 use trotcast::prelude::*;
 
-use crate::input::state::{MidiInputConnectionHandler, MidiInputState};
+use crate::input::{
+    data::MidiData,
+    state::{MidiInputConnectionHandler, MidiInputState},
+};
 
 pub trait FromMidiInputData: Send + Sync + Clone + 'static {
     type Settings: Send + Sync;

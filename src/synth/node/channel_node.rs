@@ -14,7 +14,7 @@ use midix_synth::prelude::{SoundFont, Synthesizer, SynthesizerSettings};
 use trotcast::{Channel, Receiver};
 
 use crate::{
-    input::MidiData,
+    input::data::MidiData,
     synth::node::{MidiSynthNode, MidiSynthProcessor},
 };
 

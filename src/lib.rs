@@ -1,6 +1,9 @@
 use bevy::app::Plugin;
 
-use crate::input::{FromMidiInputData, MidiData, MidiDataSettings, MidiInputSettings};
+use crate::input::{
+    FromMidiInputData, MidiInputSettings,
+    data::{MidiData, MidiDataSettings},
+};
 
 pub mod input;
 

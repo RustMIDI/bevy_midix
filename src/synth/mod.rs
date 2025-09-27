@@ -9,7 +9,7 @@ use bevy::prelude::*;
 use bevy_seedling::prelude::*;
 use trotcast::Channel;
 
-use crate::{input::MidiData, synth::node::MidiSynthNode};
+use crate::{input::data::MidiData, synth::node::MidiSynthNode};
 
 pub struct SynthPlugin;
 
