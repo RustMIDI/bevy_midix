@@ -1,6 +1,6 @@
 use bevy::app::Plugin;
 
-use crate::input::{FromMidiInputData, MidiData, MidiIoPlugin};
+use crate::input::{FromMidiInputData, MidiData};
 
 pub mod input;
 
@@ -17,10 +17,8 @@ pub struct MidiPlugin<D: FromMidiInputData = MidiData> {
 
 impl<D: FromMidiInputData> Plugin for MidiPlugin<D> {
     fn build(&self, app: &mut bevy::app::App) {
-        app.add_plugins(MidiIoPlugin::<D>::new(
-            self.input_settings.clone(),
-            self.data_settings.clone(),
-        ));
+        input::midi_io_plugin_inner::<D>(self.input_settings.clone(), &self.data_settings, app);
+
         #[cfg(feature = "assets")]
         app.add_plugins(crate::assets::MidiAssetsPlugin);
 

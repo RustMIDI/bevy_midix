@@ -28,6 +28,15 @@ impl Default for MidiIoPlugin {
 
 impl<D: FromMidiInputData> Plugin for MidiIoPlugin<D> {
     fn build(&self, app: &mut App) {
-        app.insert_resource(MidiInput::<D>::new(self.input_setings.clone()));
+        midi_io_plugin_inner::<D>(self.input_setings.clone(), &self.data_settings, app);
     }
+}
+
+pub(crate) fn midi_io_plugin_inner<D: FromMidiInputData>(
+    input_settings: MidiInputSettings,
+    data_settings: &D::Settings,
+    app: &mut App,
+) {
+    app.insert_resource(MidiInput::<D>::new(input_settings));
+    D::configure_plugin(data_settings, app);
 }

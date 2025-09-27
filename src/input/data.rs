@@ -37,7 +37,7 @@ impl FromMidiInputData for MidiData {
             message: event,
         }
     }
-    fn configure_plugin(settings: Self::Settings, app: &mut bevy::app::App) {
+    fn configure_plugin(settings: &Self::Settings, app: &mut bevy::app::App) {
         if settings.add_channel_event {
             app.add_message::<MidiData>();
 
