@@ -1,10 +1,11 @@
 use bevy::app::Plugin;
 
-use crate::input::{
-    FromMidiInputData, MidiInputSettings,
+use crate::{
     data::{MidiData, MidiDataSettings},
+    input::{FromMidiInputData, MidiInputSettings},
 };
 
+pub mod data;
 pub mod input;
 
 #[cfg(feature = "assets")]
