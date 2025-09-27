@@ -61,6 +61,8 @@ impl MidiInput {
             ports,
         }
     }
+
+    /// The channel use to send and receive midi data
     pub fn channel(&self) -> &Channel<MidiData> {
         &self.channel
     }

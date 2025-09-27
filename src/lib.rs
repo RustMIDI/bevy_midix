@@ -10,12 +10,14 @@ pub mod synth;
 #[derive(Default)]
 pub struct MidiPlugin {
     input_settings: crate::input::MidiInputSettings,
+    add_channel_event: bool,
 }
 
 impl Plugin for MidiPlugin {
     fn build(&self, app: &mut bevy::app::App) {
         app.add_plugins(crate::input::MidiIoPlugin {
             input_setings: self.input_settings.clone(),
+            add_channel_event: self.add_channel_event,
         });
         #[cfg(feature = "assets")]
         app.add_plugins(crate::assets::MidiAssetsPlugin);
