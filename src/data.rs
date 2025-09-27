@@ -1,3 +1,4 @@
+use bevy::platform::time::Instant;
 use bevy::prelude::*;
 use midix::{UMicros, events::LiveEvent};
 
@@ -73,5 +74,49 @@ fn write_midi_data<D: FromMidiInputData + Message>(
 ) {
     while let Ok(msg) = recv.0.try_recv() {
         message_writer.write(msg);
+    }
+}
+
+/// An [`Event`] for incoming midi data with the instant it was created.
+#[derive(Message, Debug, Clone)]
+pub struct MidiDataInstant {
+    /// Returns the timestamp of the data
+    pub stamp: UMicros,
+
+    /// The underlying message of the event
+    pub message: LiveEvent<'static>,
+
+    pub instant: Instant,
+}
+impl FromMidiInputData for MidiDataInstant {
+    type Settings = MidiDataSettings;
+    fn from_midi_data(timestamp: UMicros, event: LiveEvent<'static>) -> Self
+    where
+        Self: Sized,
+    {
+        Self {
+            // order first
+            instant: Instant::now(),
+            stamp: timestamp,
+            message: event,
+        }
+    }
+
+    #[cfg(feature = "synth")]
+    fn to_channel_voice_message(&self) -> Option<midix::prelude::ChannelVoiceMessage> {
+        self.message.channel_voice().copied()
+    }
+
+    fn configure_plugin(settings: &Self::Settings, app: &mut bevy::app::App) {
+        app.configure_sets(Update, RecordMidiData);
+        if settings.add_channel_event {
+            app.add_message::<MidiDataInstant>();
+
+            app.add_systems(Startup, create_recv_channel::<MidiDataInstant>)
+                .add_systems(
+                    Update,
+                    write_midi_data::<MidiDataInstant>.in_set(RecordMidiData),
+                );
+        }
     }
 }
