@@ -25,6 +25,14 @@ impl Default for MidiPlugin {
         }
     }
 }
+impl<D: FromMidiInputData> MidiPlugin<D> {
+    pub fn new(input_settings: MidiInputSettings, data_settings: D::Settings) -> Self {
+        Self {
+            input_settings,
+            data_settings,
+        }
+    }
+}
 
 impl<D: FromMidiInputData> Plugin for MidiPlugin<D> {
     fn build(&self, app: &mut bevy::app::App) {
