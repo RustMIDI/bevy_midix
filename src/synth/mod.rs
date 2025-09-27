@@ -42,7 +42,7 @@ impl<D: FromMidiInputData> Plugin for SynthPlugin<D> {
 
         app.configure_sets(Update, ProcessSynthCommands);
 
-        app.add_plugins(node::plugin);
+        app.add_plugins(node::plugin::<D>);
 
         app.add_systems(Startup, check_for_seedling)
             .add_systems(Update, process_midi_commands.in_set(ProcessSynthCommands));
