@@ -26,7 +26,7 @@ pub trait FromMidiInputData: Send + Sync + Clone + 'static {
     fn from_midi_data(timestamp: UMicros, event: LiveEvent<'static>) -> Self;
 
     #[cfg(feature = "synth")]
-    fn to_channel_voice(&self) -> Option<ChannelVoiceMessage>;
+    fn to_channel_voice_message(&self) -> Option<ChannelVoiceMessage>;
 
     /// You can use this to configure stuff for your type in bevy,
     ///

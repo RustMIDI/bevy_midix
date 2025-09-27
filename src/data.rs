@@ -44,7 +44,7 @@ impl FromMidiInputData for MidiData {
     }
 
     #[cfg(feature = "synth")]
-    fn to_channel_voice(&self) -> Option<midix::prelude::ChannelVoiceMessage> {
+    fn to_channel_voice_message(&self) -> Option<midix::prelude::ChannelVoiceMessage> {
         self.message.channel_voice().copied()
     }
 

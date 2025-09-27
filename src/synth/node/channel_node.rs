@@ -90,7 +90,7 @@ impl<D: FromMidiInputData> AudioNodeProcessor for MidiSynthProcessor<Receiver<D>
 
         // drain our midi data
         while let Ok(data) = self.channel.try_recv() {
-            if let Some(cvm) = data.to_channel_voice() {
+            if let Some(cvm) = data.to_channel_voice_message() {
                 self.process_message(cvm);
             }
         }
