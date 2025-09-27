@@ -17,6 +17,11 @@ pub struct MidiDataSettings {
     pub add_channel_event: bool,
 }
 
+/// This is the set that will pass [`MidiData`] to the event writer
+/// IF `add_channel_event` is configured.
+#[derive(SystemSet, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct RecordMidiData;
+
 #[allow(clippy::derivable_impls)]
 impl Default for MidiDataSettings {
     fn default() -> Self {
@@ -38,11 +43,12 @@ impl FromMidiInputData for MidiData {
         }
     }
     fn configure_plugin(settings: &Self::Settings, app: &mut bevy::app::App) {
+        app.configure_sets(Update, RecordMidiData);
         if settings.add_channel_event {
             app.add_message::<MidiData>();
 
             app.add_systems(Startup, create_recv_channel::<MidiData>)
-                .add_systems(Update, write_midi_data::<MidiData>);
+                .add_systems(Update, write_midi_data::<MidiData>.in_set(RecordMidiData));
         }
     }
 }
