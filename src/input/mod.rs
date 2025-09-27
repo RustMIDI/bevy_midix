@@ -23,9 +23,7 @@ use crate::input::state::{MidiInputConnectionHandler, MidiInputState};
 pub trait FromMidiInputData: Send + Sync + Clone + 'static {
     type Settings: Send + Sync;
 
-    fn from_midi_data(timestamp: UMicros, event: LiveEvent<'static>) -> Self
-    where
-        Self: Sized;
+    fn from_midi_data(timestamp: UMicros, event: LiveEvent<'static>) -> Self;
 
     /// You can use this to configure stuff for your type in bevy,
     ///
