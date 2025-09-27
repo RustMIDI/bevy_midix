@@ -1,6 +1,6 @@
 use bevy::app::Plugin;
 
-use crate::input::{FromMidiInputData, MidiData};
+use crate::input::{FromMidiInputData, MidiData, MidiDataSettings, MidiInputSettings};
 
 pub mod input;
 
@@ -9,10 +9,17 @@ pub mod assets;
 #[cfg(feature = "synth")]
 pub mod synth;
 
-#[derive(Default)]
 pub struct MidiPlugin<D: FromMidiInputData = MidiData> {
-    input_settings: crate::input::MidiInputSettings,
+    input_settings: MidiInputSettings,
     data_settings: D::Settings,
+}
+impl Default for MidiPlugin {
+    fn default() -> Self {
+        Self {
+            input_settings: MidiInputSettings::default(),
+            data_settings: MidiDataSettings::default(),
+        }
+    }
 }
 
 impl<D: FromMidiInputData> Plugin for MidiPlugin<D> {
