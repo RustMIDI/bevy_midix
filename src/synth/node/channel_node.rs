@@ -14,16 +14,16 @@ use midix_synth::prelude::{SoundFont, Synthesizer, SynthesizerSettings};
 use trotcast::{Channel, Receiver};
 
 use crate::{
-    data::MidiData,
+    input::FromMidiInputData,
     synth::node::{MidiSynthNode, MidiSynthProcessor},
 };
 
-impl MidiSynthNode<Channel<MidiData>> {
+impl<D: FromMidiInputData> MidiSynthNode<Channel<D>> {
     /// Create a new node with a loaded soundfont and reverb/chorus param
     pub(crate) fn new_with_channel(
         soundfont: Arc<SoundFont>,
         enable_reverb_and_chorus: bool,
-        channel: Channel<MidiData>,
+        channel: Channel<D>,
     ) -> Self {
         Self {
             soundfont,
@@ -33,7 +33,7 @@ impl MidiSynthNode<Channel<MidiData>> {
     }
 }
 
-impl AudioNode for MidiSynthNode<Channel<MidiData>> {
+impl<D: FromMidiInputData> AudioNode for MidiSynthNode<Channel<D>> {
     type Configuration = EmptyConfig;
 
     fn info(&self, _config: &Self::Configuration) -> AudioNodeInfo {
@@ -54,10 +54,10 @@ impl AudioNode for MidiSynthNode<Channel<MidiData>> {
     }
 }
 
-impl MidiSynthProcessor<Receiver<MidiData>> {
+impl<D: FromMidiInputData> MidiSynthProcessor<Receiver<D>> {
     /// Create a new MIDI synthesizer processor
     pub fn new_with_channel(
-        config: &MidiSynthNode<Channel<MidiData>>,
+        config: &MidiSynthNode<Channel<D>>,
         cx: ConstructProcessorContext,
     ) -> Self {
         let mut settings = SynthesizerSettings::new(cx.stream_info.sample_rate.get() as i32);
@@ -73,7 +73,7 @@ impl MidiSynthProcessor<Receiver<MidiData>> {
     }
 }
 
-impl AudioNodeProcessor for MidiSynthProcessor<Receiver<MidiData>> {
+impl<D: FromMidiInputData> AudioNodeProcessor for MidiSynthProcessor<Receiver<D>> {
     fn process(
         &mut self,
         info: &ProcInfo,
@@ -90,8 +90,8 @@ impl AudioNodeProcessor for MidiSynthProcessor<Receiver<MidiData>> {
 
         // drain our midi data
         while let Ok(data) = self.channel.try_recv() {
-            if let Some(cvm) = data.message.channel_voice() {
-                self.process_message(*cvm);
+            if let Some(cvm) = data.to_channel_voice() {
+                self.process_message(cvm);
             }
         }
 

@@ -42,6 +42,12 @@ impl FromMidiInputData for MidiData {
             message: event,
         }
     }
+
+    #[cfg(feature = "synth")]
+    fn to_channel_voice(&self) -> Option<midix::prelude::ChannelVoiceMessage> {
+        self.message.channel_voice().copied()
+    }
+
     fn configure_plugin(settings: &Self::Settings, app: &mut bevy::app::App) {
         app.configure_sets(Update, RecordMidiData);
         if settings.add_channel_event {

@@ -34,7 +34,7 @@ impl<D: FromMidiInputData> Plugin for MidiPlugin<D> {
         app.add_plugins(crate::assets::MidiAssetsPlugin);
 
         #[cfg(feature = "synth")]
-        app.add_plugins(crate::synth::SynthPlugin);
+        app.add_plugins(crate::synth::SynthPlugin::<D>::new());
     }
 }
 

@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 mod settings;
-use midix::{UMicros, events::LiveEvent};
+use midix::{UMicros, events::LiveEvent, prelude::ChannelVoiceMessage};
 pub use settings::*;
 
 mod error;
@@ -24,6 +24,9 @@ pub trait FromMidiInputData: Send + Sync + Clone + 'static {
     type Settings: Send + Sync;
 
     fn from_midi_data(timestamp: UMicros, event: LiveEvent<'static>) -> Self;
+
+    #[cfg(feature = "synth")]
+    fn to_channel_voice(&self) -> Option<ChannelVoiceMessage>;
 
     /// You can use this to configure stuff for your type in bevy,
     ///
