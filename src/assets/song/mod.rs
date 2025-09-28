@@ -89,6 +89,13 @@ impl MidiSong {
     pub fn events(&self) -> &[Timed<ChannelVoiceMessage>] {
         &self.events
     }
+
+    /// Returns the all timed midi events for the song.
+    ///
+    /// Not guaranteed to be sorted.
+    pub fn into_events(self) -> Vec<Timed<ChannelVoiceMessage>> {
+        self.events
+    }
 }
 
 impl SongWriter for MidiSong {
