@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 
-use crate::input::{FromMidiInputData, MidiData, MidiDataSettings, MidiInput, MidiInputSettings};
+use crate::{
+    data::MidiDataSettings,
+    input::{FromMidiInputData, MidiData, MidiInput, MidiInputSettings},
+};
 
 pub struct MidiIoPlugin<D: FromMidiInputData = MidiData> {
     pub input_setings: MidiInputSettings,

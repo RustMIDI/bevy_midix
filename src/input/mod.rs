@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 mod settings;
-use midix::{UMicros, events::LiveEvent};
+use midix::{UMicros, events::LiveEvent, prelude::ChannelVoiceMessage};
 pub use settings::*;
 
 mod error;
@@ -9,21 +9,24 @@ pub use error::*;
 
 mod state;
 
-mod data;
-pub use data::*;
-
 mod plugin;
 pub use plugin::*;
 
 use midir::MidiInputPort;
 use trotcast::prelude::*;
 
-use crate::input::state::{MidiInputConnectionHandler, MidiInputState};
+use crate::{
+    data::MidiData,
+    input::state::{MidiInputConnectionHandler, MidiInputState},
+};
 
 pub trait FromMidiInputData: Send + Sync + Clone + 'static {
     type Settings: Send + Sync;
 
     fn from_midi_data(timestamp: UMicros, event: LiveEvent<'static>) -> Self;
+
+    #[cfg(feature = "synth")]
+    fn to_channel_voice_message(&self) -> Option<ChannelVoiceMessage>;
 
     /// You can use this to configure stuff for your type in bevy,
     ///
@@ -42,36 +45,33 @@ pub trait FromMidiInputData: Send + Sync + Clone + 'static {
 #[derive(Resource)]
 pub struct MidiInput<D: FromMidiInputData = MidiData> {
     channel: Channel<D>,
-    settings: MidiInputSettings,
     state: Option<MidiInputState>,
     ports: Vec<MidiInputPort>,
-}
-impl Default for MidiInput {
-    fn default() -> Self {
-        Self {
-            channel: Channel::new(60),
-            settings: MidiInputSettings::default(),
-            state: None,
-            ports: Vec::new(),
-        }
-    }
+    client_name: String,
+    port_name: String,
+    ignore: Ignore,
 }
 
 impl<D: FromMidiInputData> MidiInput<D> {
     /// Creates a new midi input with the provided settings. This is done automatically
     /// by [`MidiInputPlugin`].
     pub fn new(settings: MidiInputSettings) -> Self {
-        let listener = match midir::MidiInput::new(&settings.client_name) {
+        let mut listener = match midir::MidiInput::new(&settings.client_name) {
             Ok(input) => input,
             Err(e) => {
                 panic!("Error initializing midi input! {e:?}");
             }
         };
+
+        listener.ignore(settings.ignore);
+
         let ports = listener.ports();
         Self {
-            channel: Channel::new(60),
+            channel: Channel::new(settings.channel_size),
             state: Some(MidiInputState::Listening(listener)),
-            settings,
+            client_name: settings.client_name,
+            port_name: settings.port_name,
+            ignore: settings.ignore,
             ports,
         }
     }
@@ -111,13 +111,9 @@ impl<D: FromMidiInputData> MidiInput<D> {
         let MidiInputState::Listening(listener) = self.state.take().unwrap() else {
             unreachable!()
         };
-        let handler = MidiInputConnectionHandler::new(
-            listener,
-            port,
-            &self.settings.port_name,
-            self.channel.clone(),
-        )
-        .unwrap();
+        let handler =
+            MidiInputConnectionHandler::new(listener, port, &self.port_name, self.channel.clone())
+                .unwrap();
 
         self.state = Some(MidiInputState::Active(handler));
         Ok(())
@@ -125,13 +121,14 @@ impl<D: FromMidiInputData> MidiInput<D> {
 
     /// A method you should call if [`MidiInput::is_listening`] and [`MidiInput::is_active`] are both false.
     pub fn reset(&mut self) {
-        let listener = match midir::MidiInput::new(&self.settings.client_name) {
+        let mut listener = match midir::MidiInput::new(&self.client_name) {
             Ok(input) => input,
             Err(e) => {
                 error!("Failed to reset listening state! {e:?}");
                 return;
             }
         };
+        listener.ignore(self.ignore);
         self.state = Some(MidiInputState::Listening(listener));
     }
     /// Attempts to connects to the passed port
@@ -154,13 +151,8 @@ impl<D: FromMidiInputData> MidiInput<D> {
         };
 
         self.state = Some(MidiInputState::Active(
-            MidiInputConnectionHandler::new(
-                listener,
-                port,
-                &self.settings.port_name,
-                self.channel.clone(),
-            )
-            .unwrap(),
+            MidiInputConnectionHandler::new(listener, port, &self.port_name, self.channel.clone())
+                .unwrap(),
         ));
         Ok(())
     }
@@ -190,13 +182,8 @@ impl<D: FromMidiInputData> MidiInput<D> {
             return Err(MidiInputError::port_not_found(id));
         };
         self.state = Some(MidiInputState::Active(
-            MidiInputConnectionHandler::new(
-                listener,
-                &port,
-                &self.settings.port_name,
-                self.channel.clone(),
-            )
-            .unwrap(),
+            MidiInputConnectionHandler::new(listener, &port, &self.port_name, self.channel.clone())
+                .unwrap(),
         ));
         Ok(())
     }

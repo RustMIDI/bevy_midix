@@ -1,6 +1,6 @@
 [package]
 name = "bevy_midix"
-version = "4.0.0-alpha.3"
+version = "4.0.0-alpha.7"
 authors = ["dsgallups <dsgallups@protonmail.com>"]
 edition = "2024"
 license = "MIT OR Apache-2.0"
@@ -21,8 +21,8 @@ synth = ["midix_synth", "dep:bevy_seedling", "dep:firewheel", "assets"]
 
 [dependencies]
 midir = "0.10"
-midix = { version = "4.0.0-alpha.1", features = ["bevy"] }
-midix_synth = { version = "0.1.0-alpha.0", optional = true }
+midix = { version = "4.0.0-alpha", features = ["bevy"] }
+midix_synth = { version = "0.1.0-alpha", optional = true }
 thiserror = {version = "2.0", default-features = false }
 trotcast = "0.3.0"
 serde = { version = "1.0", features = ["derive"], optional = true }
