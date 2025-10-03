@@ -149,21 +149,34 @@ pub struct MidiPlugin<D: FromMidiInputData = MidiData> {
     pub input_settings: MidiInputSettings,
     /// Settings specific to how MIDI data is processed and converted.
     pub data_settings: D::Settings,
+    /// By default, the synth feature is enabled.
+    ///
+    /// If you would like to disable the synth plugin, set this to false, or remove the synth feature.
+    #[cfg(feature = "synth")]
+    pub enable_synth: bool,
 }
 impl Default for MidiPlugin {
     fn default() -> Self {
         Self {
             input_settings: MidiInputSettings::default(),
             data_settings: MidiDataSettings::default(),
+            #[cfg(feature = "synth")]
+            enable_synth: true,
         }
     }
 }
 impl<D: FromMidiInputData> MidiPlugin<D> {
     /// Creates a new MidiPlugin with the specified input and data processing settings.
-    pub fn new(input_settings: MidiInputSettings, data_settings: D::Settings) -> Self {
+    pub fn new(
+        input_settings: MidiInputSettings,
+        data_settings: D::Settings,
+        #[cfg(feature = "synth")] enable_synth: bool,
+    ) -> Self {
         Self {
             input_settings,
             data_settings,
+            #[cfg(feature = "synth")]
+            enable_synth,
         }
     }
 }
@@ -176,7 +189,9 @@ impl<D: FromMidiInputData> Plugin for MidiPlugin<D> {
         app.add_plugins(crate::assets::MidiAssetsPlugin);
 
         #[cfg(feature = "synth")]
-        app.add_plugins(crate::synth::SynthPlugin::<D>::new());
+        if self.enable_synth {
+            app.add_plugins(crate::synth::SynthPlugin::<D>::new());
+        }
     }
 }
 

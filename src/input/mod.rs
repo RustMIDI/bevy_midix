@@ -224,11 +224,12 @@ impl<D: FromMidiInputData> MidiInput<D> {
     /// Refreshes the available port list
     ///
     /// Does nothing if [`MidiInput::is_active`] is true
-    pub fn refresh_ports(&mut self) {
+    pub fn refresh_ports(&mut self) -> Option<&[MidiInputPort]> {
         let Some(MidiInputState::Listening(listener)) = &self.state else {
-            return;
+            return None;
         };
         self.ports = listener.ports();
+        Some(&self.ports)
     }
 
     /// Disconnects from the active device
