@@ -1,4 +1,5 @@
 mod node;
+pub use node::*;
 
 use std::marker::PhantomData;
 
@@ -11,8 +12,16 @@ use bevy::prelude::*;
 use bevy_seedling::prelude::*;
 use trotcast::Channel;
 
-use crate::{data::MidiData, input::FromMidiInputData, synth::node::MidiSynthNode};
+use crate::{data::MidiData, input::FromMidiInputData};
 
+/// Plugin that enables MIDI synthesis using soundfonts.
+///
+/// This plugin integrates a software synthesizer that can play MIDI events
+/// through loaded soundfont files. It processes incoming MIDI data and
+/// generates audio output based on the instruments defined in the soundfont.
+/// The generic parameter `D` determines what type of MIDI data it processes.
+///
+/// See [`crate::data`] for common implementations.
 pub struct SynthPlugin<D: FromMidiInputData = MidiData> {
     _p: PhantomData<D>,
 }
@@ -23,11 +32,19 @@ impl Default for SynthPlugin {
     }
 }
 impl<D: FromMidiInputData> SynthPlugin<D> {
+    /// Creates a new SynthPlugin instance.
     pub fn new() -> Self {
         Self { _p: PhantomData }
     }
 }
 
+/// System set for processing synthesizer commands.
+///
+/// Systems that need to process MIDI commands for the synthesizer should
+/// be added to this set to ensure proper ordering and synchronization.
+///
+/// If you need to do something before the synth commands are processed,
+/// schedule them before this set.
 #[derive(SystemSet, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct ProcessSynthCommands;
 

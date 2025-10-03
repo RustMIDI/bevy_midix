@@ -1,6 +1,6 @@
 [package]
 name = "bevy_midix"
-version = "4.0.0-alpha.7"
+version = "4.0.0-alpha.8"
 authors = ["dsgallups <dsgallups@protonmail.com>"]
 edition = "2024"
 license = "MIT OR Apache-2.0"
@@ -32,7 +32,7 @@ bevy_seedling = { version = "0.6.0-rc", features = [
 firewheel = { version = "0.8.0-rc", optional = true }
 
 [dependencies.bevy]
-version = "0.17.0-rc"
+version = "0.17"
 default-features = false
 features = ["bevy_log"]
 

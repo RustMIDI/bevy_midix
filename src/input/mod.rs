@@ -20,12 +20,31 @@ use crate::{
     input::state::{MidiInputConnectionHandler, MidiInputState},
 };
 
+/// Trait for converting raw MIDI input events into custom data types.
+///
+/// Implement this trait to define how MIDI events should be transformed into
+/// your application-specific data structures. The default implementation `MidiData`
+/// provides standard MIDI event handling, but you can create custom types for
+/// specialized processing.
 pub trait FromMidiInputData: Send + Sync + Clone + 'static {
+    /// Configuration type for customizing the MIDI data conversion process.
+    ///
+    /// This allows you to pass settings that affect how MIDI events are
+    /// interpreted and converted into your custom type.
     type Settings: Send + Sync;
 
+    /// Converts a raw MIDI event with timestamp into your custom data type.
+    ///
+    /// This method is called for each incoming MIDI event. The timestamp
+    /// indicates when the event occurred in microseconds.
     fn from_midi_data(timestamp: UMicros, event: LiveEvent<'static>) -> Self;
 
     #[cfg(feature = "synth")]
+    /// Attempts to extract a channel voice message from this MIDI data.
+    ///
+    /// Returns `Some` if this data represents a channel voice message (like
+    /// note on/off, pitch bend, etc.), or `None` if it represents other
+    /// types of MIDI data. This is primarily used by the synth module.
     fn to_channel_voice_message(&self) -> Option<ChannelVoiceMessage>;
 
     /// You can use this to configure stuff for your type in bevy,
@@ -54,7 +73,7 @@ pub struct MidiInput<D: FromMidiInputData = MidiData> {
 
 impl<D: FromMidiInputData> MidiInput<D> {
     /// Creates a new midi input with the provided settings. This is done automatically
-    /// by [`MidiInputPlugin`].
+    /// by [`MidiIoPlugin`].
     pub fn new(settings: MidiInputSettings) -> Self {
         let mut listener = match midir::MidiInput::new(&settings.client_name) {
             Ok(input) => input,
@@ -205,11 +224,12 @@ impl<D: FromMidiInputData> MidiInput<D> {
     /// Refreshes the available port list
     ///
     /// Does nothing if [`MidiInput::is_active`] is true
-    pub fn refresh_ports(&mut self) {
+    pub fn refresh_ports(&mut self) -> Option<&[MidiInputPort]> {
         let Some(MidiInputState::Listening(listener)) = &self.state else {
-            return;
+            return None;
         };
         self.ports = listener.ports();
+        Some(&self.ports)
     }
 
     /// Disconnects from the active device

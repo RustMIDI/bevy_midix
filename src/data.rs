@@ -13,8 +13,16 @@ pub struct MidiData {
     /// The underlying message of the event
     pub message: LiveEvent<'static>,
 }
+/// Configuration settings for MIDI data processing.
+///
+/// These settings control how MIDI data is handled and what events
+/// are generated in the Bevy ECS.
 #[derive(Clone)]
 pub struct MidiDataSettings {
+    /// Whether to emit MIDI channel events to Bevy's event system.
+    ///
+    /// When enabled, MIDI data will be written to an EventWriter so other
+    /// systems can react to incoming MIDI messages.
     pub add_channel_event: bool,
 }
 

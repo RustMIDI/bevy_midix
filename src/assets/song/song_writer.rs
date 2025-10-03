@@ -2,15 +2,9 @@ use bevy::platform::collections::HashMap;
 use core::{hash::BuildHasher, iter};
 use midix::prelude::*;
 
-//use crate::prelude::{Channel, ChannelVoiceMessage, Timed, VoiceEvent};
-//use bevy_platform::{collections::HashMap, prelude::*};
-
 use super::SongId;
 
-/// This defines a song, a file, or otherwise
-/// that has timestamps associated with midi events.
-///
-/// this is named as such not to conflict with [`midix::MidiSource`]
+/// A structure used to write songs programatically
 pub trait SongWriter {
     /// Create sink commands this type.
     fn song_id(&self) -> Option<SongId> {

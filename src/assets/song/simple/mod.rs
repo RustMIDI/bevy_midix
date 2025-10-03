@@ -33,7 +33,7 @@ impl Default for ChannelSettings {
 
 /// A builder designed to make simple songs.
 ///
-/// Add a few notes, and then call [`SimpleMidiSong::build`] to get a [`MidiSong`]
+/// Add a few notes, and then call [`SimpleMidiSong::into_song`] to get a [`MidiSong`]
 ///
 /// Playing using the beat method, you can play a single tone for a whole beat.
 ///
@@ -96,9 +96,7 @@ impl SimpleMidiSong {
         let current_beat = self.beats.entry(beat_no).or_default();
         current_beat.extend(events);
     }
-}
 
-impl SimpleMidiSong {
     /// Turns this midi song into a song that can be used for the synth to handle
     pub fn into_song(self) -> MidiSong {
         let micros_per_beat = 60_000_000. / self.beats_per_minute;

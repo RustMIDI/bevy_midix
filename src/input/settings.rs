@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 pub use midir::Ignore;
 
-/// Settings for [`MidiInputPlugin`](crate::prelude::MidiInputPlugin) and [`MidiOutputPlugin`](crate::prelude::MidiOutputPlugin).
+/// Settings for [`MidiIoPlugin`](crate::prelude::MidiIoPlugin).
 #[derive(Resource, Clone, Debug)]
 pub struct MidiInputSettings {
     /// The name of the listening client
@@ -19,6 +19,10 @@ pub struct MidiInputSettings {
     /// set this value to [`Ignore::Sysex`].
     pub ignore: Ignore,
 
+    /// Size of the internal buffer for handling MIDI events.
+    ///
+    /// This determines how many MIDI events can be queued before processing.
+    /// A larger buffer can handle bursts of MIDI data better but uses more memory.
     pub channel_size: usize,
 }
 

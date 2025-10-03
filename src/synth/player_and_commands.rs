@@ -11,6 +11,11 @@ pub struct SynthPlayer {
 }
 
 impl SynthPlayer {
+    /// Creates a new SynthPlayer with the given soundfont and MIDI input configuration.
+    ///
+    /// The soundfont handle will be used to load instrument samples, while the
+    /// `midi_input_enabled` flag determines whether this player responds to incoming
+    /// MIDI events from connected devices. See [`MidiInput`](crate::input::MidiInput) for more info.
     pub fn new(handle: Handle<SoundFontAsset>, midi_input_enabled: bool) -> Self {
         Self {
             handle,
@@ -18,6 +23,7 @@ impl SynthPlayer {
         }
     }
 
+    /// Gets a reference to the soundfont asset handle used by this player.
     pub fn handle(&self) -> &Handle<SoundFontAsset> {
         &self.handle
     }
@@ -25,7 +31,7 @@ impl SynthPlayer {
 
 /// Component for sending MIDI commands to a synthesizer node via ECS.
 ///
-/// It is not required to have this (i.e. you are using a SynthPlayer<Channel>)
+/// This is automatically added to any [`MidiSynthNode`](crate::prelude::MidiSynthNode) or [`SynthPlayer`].
 #[derive(Component, Default)]
 pub struct SynthCommands {
     /// Queue of MIDI commands to send

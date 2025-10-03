@@ -7,7 +7,15 @@ use crate::assets::MidiSong;
 
 use midix::{file::MidiFile, prelude::*, reader::ReaderError};
 
+/// Extension trait for converting MIDI files into playable songs.
+///
+/// This trait provides convenience methods for working with loaded MIDI files,
+/// allowing them to be converted into a format suitable for playback.
 pub trait MidiFileExt {
+    /// Converts this MIDI file into a MidiSong that can be played by the synthesizer.
+    ///
+    /// This consumes the MIDI file and extracts all the timing and event information
+    /// needed for playback.
     fn into_song(self) -> MidiSong;
 }
 

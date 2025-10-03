@@ -25,11 +25,15 @@ impl SoundFontAsset {
 
         Self { file: Arc::new(sf) }
     }
+    /// Returns a reference to the underlying soundfont file.
+    ///
+    /// The soundfont is wrapped in an `Arc` to allow efficient sharing
+    /// between multiple synthesizer instances.
     pub fn file(&self) -> &Arc<Sf> {
         &self.file
     }
 }
-/// Possible errors that can be produced by [`CustomAssetLoader`]
+/// Possible errors that can be produced by [`SoundFontLoader`]
 #[derive(Debug, Error)]
 pub enum SoundFontLoadError {
     /// An [IO](std::io) Error
