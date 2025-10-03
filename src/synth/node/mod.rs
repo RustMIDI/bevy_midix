@@ -27,6 +27,11 @@ pub struct MidiSynthNode<C: Clone = ()> {
     pub soundfont: Arc<SoundFont>,
     /// Enable reverb and chorus
     pub enable_reverb_and_chorus: bool,
+    /// Custom channel data associated with this synthesizer node.
+    ///
+    /// This field allows attaching application-specific data to the synthesizer,
+    /// such as channel routing information or metadata. The type is generic to
+    /// support different use cases.
     pub channel: C,
 }
 impl<C: Clone> Clone for MidiSynthNode<C> {

@@ -13,38 +13,35 @@ Read from MIDI devices, MIDI files, and programmable input, and output to user a
 
 ## Example
 ```rust, no_run
-use std::time::Duration;
-use bevy::{
-    log::{Level, LogPlugin},
-    prelude::*,
-};
-use bevy_midix::{midix::prelude::*, prelude::*};
+use bevy::{prelude::*, time::common_conditions::on_timer};
+use bevy_midix::prelude::*;
+use bevy_seedling::prelude::*;
+# use std::time::Duration;
 fn main() {
     App::new()
         .add_plugins((
-            DefaultPlugins.set(LogPlugin {
-                level: Level::INFO,
-                ..default()
-            }),
-            MidiPlugin {
-                input: None,
-                ..Default::default()
-            },
+            DefaultPlugins,
+            SeedlingPlugin::default(),
+            MidiPlugin::default(),
         ))
         .add_systems(Startup, load_sf2)
-        .add_systems(Update, scale_me)
+        .add_systems(
+            Update,
+            scale_me
+                .run_if(on_timer(Duration::from_millis(200)))
+                .before(ProcessSynthCommands),
+        )
         .run();
 }
 /// Take a look here for some soundfonts:
 ///
 /// <https://sites.google.com/site/soundfonts4u/>
-fn load_sf2(asset_server: Res<AssetServer>, mut synth: ResMut<Synth>) {
-    synth.use_soundfont(asset_server.load("soundfont.sf2"));
+fn load_sf2(mut commands: Commands, assets: Res<AssetServer>) {
+    commands.spawn(SynthPlayer::new(assets.load("soundfont.sf2"), false));
 }
 
 struct Scale {
-    timer: Timer,
-    current_key: Key,
+    current_note: Note,
     note_on: bool,
     forward: bool,
     incremented_by: u8,
@@ -57,28 +54,26 @@ impl Scale {
             if self.incremented_by == self.max_increment {
                 self.forward = false;
                 self.incremented_by -= 1;
-                self.current_key -= 1;
+                self.current_note -= 1;
             } else {
                 self.incremented_by += 1;
-                self.current_key += 1;
+                self.current_note += 1;
             }
         } else if self.incremented_by == 0 {
             self.forward = true;
             self.incremented_by += 1;
-            self.current_key += 1;
+            self.current_note += 1;
         } else {
             self.incremented_by -= 1;
-            self.current_key -= 1;
+            self.current_note -= 1;
         }
     }
 }
 
 impl Default for Scale {
     fn default() -> Self {
-        let timer = Timer::new(Duration::from_millis(200), TimerMode::Repeating);
         Scale {
-            timer,
-            current_key: Key::new(Note::C, Octave::new(2)),
+            current_note: Note::new(Key::C, Octave::new(2)),
             note_on: true,
             forward: true,
             incremented_by: 0,
@@ -87,32 +82,27 @@ impl Default for Scale {
     }
 }
 
-fn scale_me(synth: Res<Synth>, time: Res<Time>, mut scale: Local<Scale>) {
-    // don't do anything until the soundfont has been loaded
-    if !synth.is_ready() {
-        return;
-    }
-    scale.timer.tick(time.delta());
-    if !scale.timer.just_finished() {
-        return;
-    }
+fn scale_me(mut synth: Single<&mut SynthCommands>, mut scale: Local<Scale>) {
+    const VEL: Velocity = Velocity::new_unchecked(67);
+
     if scale.note_on {
         //play note on
-        synth.handle_event(ChannelVoiceMessage::new(
+        synth.send(ChannelVoiceMessage::new(
             Channel::One,
-            VoiceEvent::note_on(scale.current_key, Velocity::max()),
+            VoiceEvent::note_on(scale.current_note, VEL),
         ));
     } else {
         //turn off the note
-        synth.handle_event(ChannelVoiceMessage::new(
+        synth.send(ChannelVoiceMessage::new(
             Channel::One,
-            VoiceEvent::note_off(scale.current_key, Velocity::max()),
+            VoiceEvent::note_off(scale.current_note, VEL),
         ));
         scale.calculate_next_key()
     }
 
     scale.note_on = !scale.note_on;
 }
+
 ```
 
 See `/examples` for details.
@@ -126,19 +116,38 @@ This crate was originally forked from [`bevy_midi`](https://github.com/BlackPhlo
 
 use bevy::app::Plugin;
 
-use crate::input::{FromMidiInputData, MidiData, MidiDataSettings, MidiInputSettings};
+use crate::{
+    data::{MidiData, MidiDataSettings},
+    input::{FromMidiInputData, MidiInputSettings},
+};
 
+/// MIDI input handling and event processing.
+///
+/// This module provides the core functionality for reading MIDI data from devices
+/// and converting it into Bevy-compatible events.
 pub mod input;
 
+/// Common implementations of [`FromMidiInputData`]
+pub mod data;
+
+/// Contains the [`MidiAssetsPlugin`](crate::assets::MidiAssetsPlugin) and other types.
 #[cfg(feature = "assets")]
-/// Contains the [`MidiAssetsPlugin`] and other types.
 pub mod assets;
+
+/// Contains the [`SynthPlugin`](crate::synth::SynthPlugin) and other types.
 #[cfg(feature = "synth")]
-/// Contains the [`SynthPlugin`] and other types.
 pub mod synth;
 
+/// Main plugin for integrating MIDI functionality into your Bevy application.
+///
+/// This plugin sets up MIDI input handling and optionally enables asset loading
+/// and synthesizer features based on enabled cargo features. The generic parameter
+/// `D` allows you to customize how MIDI data is processed - by default it uses
+/// `MidiData` which provides standard MIDI event handling.
 pub struct MidiPlugin<D: FromMidiInputData = MidiData> {
+    /// Configuration for MIDI input devices and connections.
     pub input_settings: MidiInputSettings,
+    /// Settings specific to how MIDI data is processed and converted.
     pub data_settings: D::Settings,
 }
 impl Default for MidiPlugin {
@@ -150,6 +159,7 @@ impl Default for MidiPlugin {
     }
 }
 impl<D: FromMidiInputData> MidiPlugin<D> {
+    /// Creates a new MidiPlugin with the specified input and data processing settings.
     pub fn new(input_settings: MidiInputSettings, data_settings: D::Settings) -> Self {
         Self {
             input_settings,
@@ -170,6 +180,10 @@ impl<D: FromMidiInputData> Plugin for MidiPlugin<D> {
     }
 }
 
+/// Re-exports commonly used types for convenient importing.
+///
+/// Use `bevy_midix::prelude::*` to import all the essential types needed
+/// for working with MIDI in Bevy.
 pub mod prelude {
     pub use crate::input::*;
 

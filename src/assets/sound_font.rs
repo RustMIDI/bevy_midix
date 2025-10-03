@@ -25,6 +25,10 @@ impl SoundFontAsset {
 
         Self { file: Arc::new(sf) }
     }
+    /// Returns a reference to the underlying soundfont file.
+    ///
+    /// The soundfont is wrapped in an `Arc` to allow efficient sharing
+    /// between multiple synthesizer instances.
     pub fn file(&self) -> &Arc<Sf> {
         &self.file
     }

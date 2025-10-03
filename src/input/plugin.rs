@@ -1,13 +1,24 @@
 use bevy::prelude::*;
 
-use crate::input::{FromMidiInputData, MidiData, MidiDataSettings, MidiInput, MidiInputSettings};
+use crate::{
+    data::MidiDataSettings,
+    input::{FromMidiInputData, MidiData, MidiInput, MidiInputSettings},
+};
 
+/// Plugin for managing MIDI input/output operations.
+///
+/// This plugin handles the low-level MIDI device connections and data routing.
+/// It's typically used internally by `MidiPlugin`, but can be used directly if
+/// you need more granular control over MIDI I/O without the additional features.
 pub struct MidiIoPlugin<D: FromMidiInputData = MidiData> {
+    /// Settings for MIDI input device configuration and connection behavior.
     pub input_setings: MidiInputSettings,
+    /// Configuration for how raw MIDI data is converted to the type `D`.
     pub data_settings: D::Settings,
 }
 
 impl<D: FromMidiInputData> MidiIoPlugin<D> {
+    /// Creates a new MidiIoPlugin with specified input and data conversion settings.
     pub fn new(input_setings: MidiInputSettings, data_settings: D::Settings) -> Self {
         Self {
             input_setings,
