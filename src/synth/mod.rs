@@ -1,4 +1,5 @@
 mod node;
+pub use node::*;
 
 use std::marker::PhantomData;
 
@@ -11,7 +12,7 @@ use bevy::prelude::*;
 use bevy_seedling::prelude::*;
 use trotcast::Channel;
 
-use crate::{data::MidiData, input::FromMidiInputData, synth::node::MidiSynthNode};
+use crate::{data::MidiData, input::FromMidiInputData};
 
 pub struct SynthPlugin<D: FromMidiInputData = MidiData> {
     _p: PhantomData<D>,

@@ -54,7 +54,7 @@ pub struct MidiInput<D: FromMidiInputData = MidiData> {
 
 impl<D: FromMidiInputData> MidiInput<D> {
     /// Creates a new midi input with the provided settings. This is done automatically
-    /// by [`MidiInputPlugin`].
+    /// by [`MidiIoPlugin`].
     pub fn new(settings: MidiInputSettings) -> Self {
         let mut listener = match midir::MidiInput::new(&settings.client_name) {
             Ok(input) => input,

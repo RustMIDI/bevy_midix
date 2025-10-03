@@ -17,8 +17,11 @@ mod plugin;
 use midix_synth::prelude::{SoundFont, Synthesizer, SynthesizerSettings};
 pub(super) use plugin::plugin;
 
+use crate::synth::SynthCommands;
+
 /// Configuration for the MIDI synthesizer node
 #[derive(Debug, Component, TypePath)]
+#[require(SynthCommands)]
 pub struct MidiSynthNode<C: Clone = ()> {
     /// The soundfont data
     pub soundfont: Arc<SoundFont>,

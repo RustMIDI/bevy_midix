@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 pub use midir::Ignore;
 
-/// Settings for [`MidiInputPlugin`](crate::prelude::MidiInputPlugin) and [`MidiOutputPlugin`](crate::prelude::MidiOutputPlugin).
+/// Settings for [`MidiIoPlugin`](crate::prelude::MidiIoPlugin).
 #[derive(Resource, Clone, Debug)]
 pub struct MidiInputSettings {
     /// The name of the listening client

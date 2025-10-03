@@ -25,7 +25,7 @@ impl SynthPlayer {
 
 /// Component for sending MIDI commands to a synthesizer node via ECS.
 ///
-/// It is not required to have this (i.e. you are using a SynthPlayer<Channel>)
+/// This is automatically added to any [`MidiSynthNode`](crate::prelude::MidiSynthNode) or [`SynthPlayer`].
 #[derive(Component, Default)]
 pub struct SynthCommands {
     /// Queue of MIDI commands to send
