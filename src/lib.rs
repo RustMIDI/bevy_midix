@@ -1,3 +1,5 @@
+#![warn(missing_docs)]
+#![warn(clippy::print_stdout)]
 #![doc = r#"
 # bevy_MIDIx
 
