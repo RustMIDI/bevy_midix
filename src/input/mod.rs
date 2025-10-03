@@ -12,13 +12,13 @@ mod state;
 mod plugin;
 pub use plugin::*;
 
+mod data;
+pub use data::*;
+
 use midir::MidiInputPort;
 use trotcast::prelude::*;
 
-use crate::{
-    data::MidiData,
-    input::state::{MidiInputConnectionHandler, MidiInputState},
-};
+use crate::input::state::{MidiInputConnectionHandler, MidiInputState};
 
 pub trait FromMidiInputData: Send + Sync + Clone + 'static {
     type Settings: Send + Sync;

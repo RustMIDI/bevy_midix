@@ -12,7 +12,7 @@ use bevy::prelude::*;
 use bevy_seedling::prelude::*;
 use trotcast::Channel;
 
-use crate::{data::MidiData, input::FromMidiInputData};
+use crate::input::{FromMidiInputData, MidiData};
 
 pub struct SynthPlugin<D: FromMidiInputData = MidiData> {
     _p: PhantomData<D>,

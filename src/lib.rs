@@ -126,17 +126,15 @@ This crate was originally forked from [`bevy_midi`](https://github.com/BlackPhlo
 
 use bevy::app::Plugin;
 
-use crate::{
-    data::{MidiData, MidiDataSettings},
-    input::{FromMidiInputData, MidiInputSettings},
-};
+use crate::input::{FromMidiInputData, MidiData, MidiDataSettings, MidiInputSettings};
 
-pub mod data;
 pub mod input;
 
 #[cfg(feature = "assets")]
+/// Contains the [`MidiAssetsPlugin`] and other types.
 pub mod assets;
 #[cfg(feature = "synth")]
+/// Contains the [`SynthPlugin`] and other types.
 pub mod synth;
 
 pub struct MidiPlugin<D: FromMidiInputData = MidiData> {
