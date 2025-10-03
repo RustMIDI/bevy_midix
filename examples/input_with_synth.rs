@@ -20,7 +20,7 @@ fn connect_to_first_input(mut input: ResMut<MidiInput>) {
     let Some(ports) = input.refresh_ports() else {
         return;
     };
-    if let Some(first) = ports.get(1).cloned() {
+    if let Some(first) = ports.first().cloned() {
         info!("Connecting to {}", first.id());
         _ = input
             .connect_to_port(&first)
