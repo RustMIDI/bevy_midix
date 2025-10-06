@@ -20,13 +20,13 @@ use crate::{
 
 impl<D: FromMidiInputData> MidiSynthNode<Channel<D>> {
     /// Create a new node with a loaded soundfont and reverb/chorus param
-    pub(crate) fn new_with_channel(
-        soundfont: Arc<SoundFont>,
+    pub(crate) fn new_with_io_channel(
+        soundfont_channel: crossbeam_channel::Receiver<Arc<SoundFont>>,
         enable_reverb_and_chorus: bool,
         channel: Channel<D>,
     ) -> Self {
         Self {
-            soundfont,
+            sf_recv: soundfont_channel,
             enable_reverb_and_chorus,
             channel,
         }
@@ -63,45 +63,16 @@ impl<D: FromMidiInputData> MidiSynthProcessor<Receiver<D>> {
         let mut settings = SynthesizerSettings::new(cx.stream_info.sample_rate.get() as i32);
         settings.enable_reverb_and_chorus = config.enable_reverb_and_chorus;
 
-        let synthesizer = Synthesizer::new(config.soundfont.clone(), &settings)
-            .expect("Failed to create synthesizer");
+        let soundfont_channel = config.sf_recv.clone();
+        let soundfont = soundfont_channel.try_recv().unwrap();
+
+        let synthesizer =
+            Synthesizer::new(soundfont, &settings).expect("Failed to create synthesizer");
 
         Self {
+            soundfont_channel,
             synthesizer,
-            channel: config.channel.spawn_rx(),
+            io_channel: config.channel.spawn_rx(),
         }
-    }
-}
-
-impl<D: FromMidiInputData> AudioNodeProcessor for MidiSynthProcessor<Receiver<D>> {
-    fn process(
-        &mut self,
-        info: &ProcInfo,
-        ProcBuffers { outputs, .. }: ProcBuffers,
-        events: &mut ProcEvents,
-        _extra: &mut ProcExtra,
-    ) -> ProcessStatus {
-        // Process other incoming MIDI events
-        for event in events.drain() {
-            if let Some(message) = event.downcast_ref::<ChannelVoiceMessage>() {
-                self.process_message(*message);
-            }
-        }
-
-        // drain our midi data
-        while let Ok(data) = self.channel.try_recv() {
-            if let Some(cvm) = data.to_channel_voice_message() {
-                self.process_message(cvm);
-            }
-        }
-
-        let frames = info.frames;
-
-        // guaranteed to be 2 due to our node's STEREO value.
-        let (left, right) = outputs.split_at_mut(1);
-        // Render audio from the synthesizer
-        self.synthesizer
-            .render(&mut left[0][..frames], &mut right[0][..frames]);
-        ProcessStatus::outputs_not_silent()
     }
 }
