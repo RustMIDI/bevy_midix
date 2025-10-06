@@ -9,9 +9,6 @@ use crate::{
     synth::{SynthPlayer, node::MidiSynthNode},
 };
 
-#[derive(Component)]
-struct NodeSpawned;
-
 pub fn plugin<D: FromMidiInputData>(app: &mut App) {
     app.add_systems(Update, spawn_midi_nodes::<D>);
 }
@@ -22,7 +19,7 @@ pub fn plugin<D: FromMidiInputData>(app: &mut App) {
 fn spawn_midi_nodes<D: FromMidiInputData>(
     mut commands: Commands,
     soundfont_assets: Res<Assets<SoundFontAsset>>,
-    query: Query<(Entity, &SynthPlayer), Without<NodeSpawned>>,
+    query: Query<(Entity, &SynthPlayer), Without<MidiSynthNode>>,
     time: Res<Time<Audio>>,
     midi_io: Res<MidiInput<D>>,
 ) {
@@ -52,6 +49,6 @@ fn spawn_midi_nodes<D: FromMidiInputData>(
             // bevy_seedling will automatically handle node creation and connection
             entity_commands.insert(node);
         }
-        entity_commands.insert((AudioEvents::new(&time), NodeSpawned));
+        entity_commands.insert(AudioEvents::new(&time));
     }
 }
