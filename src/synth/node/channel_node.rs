@@ -102,6 +102,7 @@ impl<D: FromMidiInputData> AudioNodeProcessor for MidiSynthProcessor<Receiver<D>
         // Render audio from the synthesizer
         self.synthesizer
             .render(&mut left[0][..frames], &mut right[0][..frames]);
-        ProcessStatus::outputs_not_silent()
+
+        ProcessStatus::OutputsModified
     }
 }
